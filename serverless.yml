@@ -1,0 +1,26 @@
+# Welcome to Serverless!
+
+service: chat-bot
+
+provider:
+  name: aws
+  runtime: nodejs6.10
+
+functions:
+  fbverify:
+    handler: handler.fbVerify
+    events:
+      - http:
+          path: fbhook
+          method: GET
+          integration: lambda
+  fbmessages:
+    handler: handler.fbMessages
+    events:
+      - http:
+          path: fbhook
+          method: POST
+          integration: lambda
+
+plugins:
+  - serverless-offline
