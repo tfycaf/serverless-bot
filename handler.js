@@ -43,6 +43,7 @@ module.exports.fbMessages = (event, context, callback) => {
     entry.messaging.map(messagingItem => {
 
       // add the state handler here
+      console.log("Getting the state now");
  getState(messagingItem.sender.id).then(s => {
     if (s == "STARTED"){
  
@@ -184,10 +185,10 @@ module.exports.fbMessages = (event, context, callback) => {
          //   console.log("This is the user key:", userKey);
          //might need to move const 
 
-  function getState(event){
-    const psid = messagingItem.sender.id;
+  function getState(psid){
+    console.log(psid);
     if (messagingItem.message.text == "Get Started"){
-
+      console.log("putting STARTED into the db")
       await db
       .put({
         TableName: 'State',
@@ -220,10 +221,10 @@ module.exports.fbMessages = (event, context, callback) => {
  // };    
 
   function saveFeedback(psid, text){
+    
     //match with user via psid
-    getPSID(event);
     //take text from user input
-    foodRatingHandler();
+  
  //   payload = messagingItem.message.text (?- this is probably incorrect)
     //Change it into corresponding payload for the database
     //Maybe put an if function action here for each item, or make this a generic actor
