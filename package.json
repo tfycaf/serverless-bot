@@ -12,7 +12,9 @@
   "author": "siwananda",
   "license": "ISC",
   "dependencies": {
-    "node-fetch": "^1.7.2"
+    "node-fetch": "^1.7.2",
+    "aws-sdk": "^2.274.1",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "serverless-offline": "^3.25.17"
