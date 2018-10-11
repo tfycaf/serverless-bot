@@ -12,8 +12,8 @@
   "author": "siwananda",
   "license": "ISC",
   "dependencies": {
-    "node-fetch": "^1.7.2",
     "aws-sdk": "^2.274.1",
+    "node-fetch": "^1.7.2",
     "uuid": "^3.3.2"
   },
   "devDependencies": {
