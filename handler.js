@@ -3,6 +3,7 @@ const nodeFetch = require("node-fetch");
 const AWS = require("aws-sdk");
 const v4 = require("uuid");
 
+
 const db = new AWS.DynamoDB.DocumentClient({
   region: "us-east-1"
 });
@@ -239,7 +240,7 @@ module.exports.fbMessages = (event, context, callback) => {
             },
             {
               content_type: "text",
-              title: "Yep 👍",
+              title: "Yep! 👍",
               payload: "<POSTBACK_PAYLOAD>"
             },
           ]
@@ -290,7 +291,7 @@ module.exports.fbMessages = (event, context, callback) => {
               },
               {
                 content_type: "text",
-                title: "Yep 👍",
+                title: "Yep! 👍",
                 payload: "<POSTBACK_PAYLOAD>"
               },
             ]
@@ -317,7 +318,59 @@ module.exports.fbMessages = (event, context, callback) => {
               
               .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
         }
-        else if (s=="FOOD RATED" && messagingItem.message.text == "Nope"){
+        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "100!"){
+          console.log("Defining responsePayload for VEGAN FEEDBACK thumbs Up");
+          const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
+
+          const response1 = {
+            attachment:{
+              type:"image", 
+              payload:{
+                url:"https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif", 
+                is_reusable:true
+              }
+           }
+        }
+
+        const response2 = {
+          text: "Did you know it was... plant-based!?",
+        
+          quick_replies: [
+            {
+              content_type: "text",
+              title: "WAT?? 😲😱",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+            {
+              content_type: "text",
+              title: "Yep! 👍",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+          ]
+        }
+        callSendAPI(messagingItem, callback, response1).then(() => {
+          return callSendAPI(messagingItem, callback,response2)
+          })
+
+            console.log("Updating the db state")
+           
+           return db
+            .update({
+              TableName: 'State',
+              Key: { psid },
+              UpdateExpression: 'set #s = :s',
+              ExpressionAttributeNames: {
+                '#s': 'state',
+              },
+              ExpressionAttributeValues: {
+                ':s': "FOOD RATED",
+              },
+              
+            })
+            
+            .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
+      }
+        else if (s=="FOOD RATED" && messagingItem.message.text == "WAT??"){
               console.log("Defining responsePayload for VEGAN FEEDBACK thumbs Up");
               const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
     
@@ -455,7 +508,7 @@ module.exports.fbMessages = (event, context, callback) => {
         const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
 
         const response1 = {
-          text: "Okay no problem! See you later!"
+          text: "Great! I'll send you a message next time we are on campus. See you later!"
         }
         callSendAPI(messagingItem, callback, response1);
 
@@ -508,26 +561,7 @@ module.exports.fbMessages = (event, context, callback) => {
           });
 
         }
-      })
-    })
-  })
-}
-
-async function callSendAPI(messagingItem, callback, response1){
-  console.log("Using callsendAPI function")
-  const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
-  const responsePayload = {
-    recipient: {
-      id: messagingItem.sender.id
-    },
-   message: response1,
-  }
-  nodeFetch(url, {
-    method: "POST",
-    body: JSON.stringify(responsePayload),
-    headers: { "Content-Type": "application/json" }
-  })
-    .then(res => res.json())
+    (res => res.json())
     .then(json => {
       console.log("Json result ", json);
       callback(null, json);
@@ -535,10 +569,33 @@ async function callSendAPI(messagingItem, callback, response1){
     .catch(error => {
       console.error("Call failed ", error);
       callback(null, error);
-    });
+    })
+    ;
+    console.log("Done sending message")
+      })
+    })
+  })
 }
+function callSendAPI(messagingItem, callback, response1){
+  console.log("Using callsendAPI function");
+ 
+ // const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`
+  const responsePayload = {
+    recipient: {
+      id: messagingItem.sender.id
+    },
+   message: response1,
+  }
+  const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`
+ return nodeFetch(url, {
+    method: "POST",
+    body: JSON.stringify(responsePayload),
+    headers: { "Content-Type": "application/json" }
+  })
+}
+  
 
-async function getState(event,messagingItem,psid) {
+ function getState(event,messagingItem,psid) {
 console.log("This is the event" , JSON.stringify(event));
 console.log(psid);
 if (messagingItem.message.text == "Get Started"){
@@ -564,7 +621,7 @@ return db.get({
 }
 } 
 
-async function saveFeedback(psid, messagingItem,s) {
+ function saveFeedback(psid, messagingItem,s) {
 const cats = messagingItem.message.text;
 let payload;
 let type;
@@ -585,7 +642,7 @@ console.log("Working through savefeedback");
     type = "RATING ON FOOD";
     payload = 2;
   }
-  else if (s =="FOOD RATED" && cats == "Nope"){
+  else if (s =="FOOD RATED" && cats == "WAT??"){
     type = "VEGAN FEEDBACK";
     payload = 0;
   }
@@ -621,4 +678,3 @@ console.log("Values entering database", item)
       console.log("Have submitted feedback into the database");
     });
 }
-
