@@ -40,10 +40,10 @@ module.exports.fbMessages = (event, context, callback) => {
       getState(event,messagingItem,psid).then(s => {
         console.log("Got the state");
         
-        if (s == "START") {
+        if (messagingItem.postback.title == "Get Started") {
           console.log("Defining responsePayload for START");
           
-         const response1 = {
+         const response2 = {
             text:
             "Hey would you like to see more sustainable food options on campus?", 
       
@@ -60,7 +60,7 @@ module.exports.fbMessages = (event, context, callback) => {
             }
           ],
         }
-       const response2 = {
+       const response1 = {
         attachment:{
           type:"image", 
           payload:{
@@ -85,7 +85,7 @@ module.exports.fbMessages = (event, context, callback) => {
        ':s': "STARTED",
      },
      
-   }).promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
+   }).promise()
    
 
           }
@@ -102,7 +102,7 @@ module.exports.fbMessages = (event, context, callback) => {
             attachment:{
               type:"image", 
               payload:{
-                url:"https://media.giphy.com/media/dzaUX7CAG0Ihi/giphy.gif", 
+                url:"https://media.giphy.com/media/1wX7kfWNy36E3aBnm0/giphy.gif", 
                 is_reusable:true
               }
           } 
@@ -161,7 +161,7 @@ module.exports.fbMessages = (event, context, callback) => {
               attachment:{
                 type:"image", 
                 payload:{
-                  url:"https://media.giphy.com/media/dzaUX7CAG0Ihi/giphy.gif", 
+                  url:"https://media.giphy.com/media/s239QJIh56sRW/source.gif", 
                   is_reusable:true
                 }
              }
@@ -378,7 +378,7 @@ module.exports.fbMessages = (event, context, callback) => {
                 attachment:{
                   type:"image", 
                   payload:{
-                    url:"https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif", 
+                    url:"http://www.fryfamilyfood.com/au/wp-content/uploads/2016/09/Chia-Nuggets--550x978.png", 
                     is_reusable:true
                   }
                }
@@ -431,7 +431,7 @@ module.exports.fbMessages = (event, context, callback) => {
                   attachment:{
                     type:"image", 
                     payload:{
-                      url:"https://media.giphy.com/media/5GoVLqeAOo6PK/giphy.gif", 
+                      url:"http://www.fryfamilyfood.com/au/wp-content/uploads/2016/09/Chia-Nuggets--550x978.png", 
                       is_reusable:true
                     }
                  }
@@ -598,7 +598,7 @@ function callSendAPI(messagingItem, callback, response1){
  function getState(event,messagingItem,psid) {
 console.log("This is the event" , JSON.stringify(event));
 console.log(psid);
-if (messagingItem.message.text == "Get Started"){
+if (messagingItem.postback.title == "Get Started"){
 console.log("putting STARTED into the db");
 return db.put({
     TableName: "State",
