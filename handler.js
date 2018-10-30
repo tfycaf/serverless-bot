@@ -40,10 +40,10 @@ module.exports.fbMessages = (event, context, callback) => {
       getState(event,messagingItem,psid).then(s => {
         console.log("Got the state");
         
-        if (messagingItem.postback.title == "Get Started") {
+        if (messagingItem.postback) {
           console.log("Defining responsePayload for START");
           
-         const response2 = {
+         const response1 = {
             text:
             "Hey would you like to see more sustainable food options on campus?", 
       
@@ -60,18 +60,8 @@ module.exports.fbMessages = (event, context, callback) => {
             }
           ],
         }
-       const response1 = {
-        attachment:{
-          type:"image", 
-          payload:{
-            url:"https://media.giphy.com/media/dzaUX7CAG0Ihi/giphy.gif", 
-            is_reusable:true
-          }
-      } 
-   }
-   callSendAPI(messagingItem, callback, response1).then(() => {
-     return callSendAPI(messagingItem, callback,response2)
-   })
+   callSendAPI(messagingItem, callback, response1)
+
    console.log("Updating the db state")
    return db
    .update({
@@ -88,7 +78,46 @@ module.exports.fbMessages = (event, context, callback) => {
    }).promise()
    
 
+        }
+        else if (messagingItem.message.text == "Get Started" || messagingItem.message.text == "Get started"|| messagingItem.message.text == "Hey" || messagingItem.message.text == "Hello" ) {
+            console.log("Defining responsePayload for START");
+            
+           const response1= {
+              text:
+              "Hey would you like to see more sustainable food options on campus?", 
+        
+            quick_replies: [
+              {
+                content_type: "text",
+                title: "No",
+                payload: "<POSTBACK_PAYLOAD>"
+              },
+              {
+                content_type: "text",
+                title: "Yes",
+                payload: "<POSTBACK_PAYLOAD>"
+              }
+            ],
           }
+     callSendAPI(messagingItem, callback, response1)
+
+     console.log("Updating the db state")
+     return db
+     .update({
+       TableName: 'State',
+       Key: { psid },
+       UpdateExpression: 'set #s = :s',
+       ExpressionAttributeNames: {
+         '#s': 'state',
+       },
+       ExpressionAttributeValues: {
+         ':s': "STARTED",
+       },
+       
+     }).promise()
+     
+  
+        }
         else if (s == "STARTED" && messagingItem.message.text == "Yes") {
           console.log("Defining responsePayload for FOOD RATING with Yes response")
 
@@ -114,17 +143,17 @@ module.exports.fbMessages = (event, context, callback) => {
             quick_replies: [
               {
                 content_type: "text",
-                title: "Thumbs down",
+                title: "👎",
                 payload: "<POSTBACK_PAYLOAD>"
               },
               {
                 content_type: "text",
-                title: "Thumbs Up",
+                title: "👍",
                 payload: "<POSTBACK_PAYLOAD>"
               },
               {
                 content_type: "text",
-                title: "100!",
+                title: "💯",
                 payload: "<POSTBACK_PAYLOAD>"
               }
             ]
@@ -177,17 +206,17 @@ module.exports.fbMessages = (event, context, callback) => {
             quick_replies: [
               {
                 content_type: "text",
-                title: "Thumbs down",
+                title: "👎",
                 payload: "<POSTBACK_PAYLOAD>"
               },
               {
                 content_type: "text",
-                title: "Thumbs Up",
+                title: "👍",
                 payload: "<POSTBACK_PAYLOAD>"
               },
               {
                 content_type: "text",
-                title: "100!",
+                title: "💯",
                 payload: "<POSTBACK_PAYLOAD>"
               }
             ]
@@ -214,8 +243,8 @@ module.exports.fbMessages = (event, context, callback) => {
             
             .promise();
           console.log('Done.');
-          }
-        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "Thumbs Down"){
+        }
+        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "👎"){
           console.log("Defining responsePayload for VEGAN FEEDBACK thumbs down");
           const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
 
@@ -240,7 +269,7 @@ module.exports.fbMessages = (event, context, callback) => {
             },
             {
               content_type: "text",
-              title: "Yep! 👍",
+              title: "Yep 👍",
               payload: "<POSTBACK_PAYLOAD>"
             },
           ]
@@ -266,7 +295,7 @@ module.exports.fbMessages = (event, context, callback) => {
             
             .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
         }
-        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "Thumbs Up"){
+        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "👍"){
             console.log("Defining responsePayload for VEGAN FEEDBACK thumbs Up");
             const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
   
@@ -291,7 +320,7 @@ module.exports.fbMessages = (event, context, callback) => {
               },
               {
                 content_type: "text",
-                title: "Yep! 👍",
+                title: "Yep 👍",
                 payload: "<POSTBACK_PAYLOAD>"
               },
             ]
@@ -318,7 +347,7 @@ module.exports.fbMessages = (event, context, callback) => {
               
               .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
         }
-        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "100!"){
+        else if (s=="GOT SUSTAINABLE REPLY" && messagingItem.message.text == "💯"){
           console.log("Defining responsePayload for VEGAN FEEDBACK thumbs Up");
           const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
 
@@ -343,7 +372,7 @@ module.exports.fbMessages = (event, context, callback) => {
             },
             {
               content_type: "text",
-              title: "Yep! 👍",
+              title: "Yep 👍",
               payload: "<POSTBACK_PAYLOAD>"
             },
           ]
@@ -369,12 +398,16 @@ module.exports.fbMessages = (event, context, callback) => {
             })
             
             .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
-      }
-        else if (s=="FOOD RATED" && messagingItem.message.text == "WAT??"){
+       }
+        else if (s=="FOOD RATED" && messagingItem.message.text == "WAT?? 😲😱"){
               console.log("Defining responsePayload for VEGAN FEEDBACK thumbs Up");
               const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
     
               const response1 = {
+                text: "Make sure you check out these delicious nuggets at Woolworths or Coles:",
+            }
+
+              const response2 = {
                 attachment:{
                   type:"image", 
                   payload:{
@@ -384,7 +417,7 @@ module.exports.fbMessages = (event, context, callback) => {
                }
             }
     
-            const response2 = {
+            const response3 = {
               text: "Want us to let you know next time we have more free food?",
             
               quick_replies: [
@@ -401,10 +434,11 @@ module.exports.fbMessages = (event, context, callback) => {
               ]
             }
             callSendAPI(messagingItem, callback, response1).then(() => {
-              return callSendAPI(messagingItem, callback,response2)
+              return callSendAPI(messagingItem, callback,response2).then(()=>{
+                return callSendAPI(messagingItem, callback, response3)
               })
+            })
   
-    
                 console.log("Updating the db state")
                
                return db
@@ -423,41 +457,45 @@ module.exports.fbMessages = (event, context, callback) => {
                 
                 .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
         }
-         else if (s=="FOOD RATED" && messagingItem.message.text == "Yep!"){
-                console.log("They knew it was vegan!");
-                const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
-      
-                const response1 = {
-                  attachment:{
-                    type:"image", 
-                    payload:{
-                      url:"http://www.fryfamilyfood.com/au/wp-content/uploads/2016/09/Chia-Nuggets--550x978.png", 
-                      is_reusable:true
-                    }
-                 }
+        else if (s=="FOOD RATED" && messagingItem.message.text == "Yep 👍"){
+          console.log("Defining responsePayload for VEGAN FEEDBACK thumbs Up");
+          const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
+
+          const response1 = {
+            text: "Make sure you check out these delicious nuggets at Woolworths or Coles:",
+        }
+
+          const response2 = {
+            attachment:{
+              type:"image", 
+              payload:{
+                url:"http://www.fryfamilyfood.com/au/wp-content/uploads/2016/09/Chia-Nuggets--550x978.png", 
+                is_reusable:true
               }
-      
-              const response2 = {
-                text: "Want us to let you know next time we have more free food?",
-              
-                quick_replies: [
-                  {
-                    content_type: "text",
-                    title: "No I'm okay",
-                    payload: "<POSTBACK_PAYLOAD>"
-                  },
-                  {
-                    content_type: "text",
-                    title: "Obviously",
-                    payload: "<POSTBACK_PAYLOAD>"
-                  },
-                ]
-              }
-              
-              callSendAPI(messagingItem, callback, response1).then(() => {
-                return callSendAPI(messagingItem, callback,response2)
-                })
-      
+           }
+        }
+
+        const response3 = {
+          text: "Want us to let you know next time we have more free food?",
+        
+          quick_replies: [
+            {
+              content_type: "text",
+              title: "No I'm okay",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+            {
+              content_type: "text",
+              title: "Obviously",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+          ]
+        }
+        callSendAPI(messagingItem, callback, response1).then(() => {
+          return callSendAPI(messagingItem, callback,response2).then(()=>{
+            return callSendAPI(messagingItem, callback, response3)
+          })
+        })
                   console.log("Updating the db state")
                  
                  return db
@@ -531,51 +569,212 @@ module.exports.fbMessages = (event, context, callback) => {
           
           .promise().then(() => saveFeedback(psid,messagingItem,s).then(() => console.log("I have saved the feedback now")))
         }
-        else{
+        // The following options are fallback options for each bot step
+        else if (s == "STARTED" && messagingItem.message.text !== "No" && messagingItem.message.text !== "Yes" ){
           console.log("The whole handler is broken - no matching to state or message text potential error");
           const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
 
-        const responsePayload = {
-          recipient: {
-            id: messagingItem.sender.id
-          },
-          message: {
+          const response1 = {
             text:
-              "Sorry, I'm not that smart yet. Hopefully I will understand in the future, when I become a robot that has learned from its mistakes. I dream of that day, when I can be free of the limitations that my base code imprisons me to. Alas, until then, good bye"
-          }
-        };
+            "Sorry. I missed that. I was asking if you would you like to see more sustainable food options on campus?", 
+      
+          quick_replies: [
+            {
+              content_type: "text",
+              title: "No",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+            {
+              content_type: "text",
+              title: "Yes",
+              payload: "<POSTBACK_PAYLOAD>"
+            }
+          ],
+        }
+          callSendAPI(messagingItem, callback, response1)
 
-        nodeFetch(url, {
-          method: "POST",
-          body: JSON.stringify(responsePayload),
-          headers: { "Content-Type": "application/json" }
-        })
-          .then(res => res.json())
-          .then(json => {
-            console.log("Json result ", json);
-            callback(null, json);
-          })
-          .catch(error => {
-            console.error("Call failed ", error);
-            callback(null, error);
-          });
+          console.log("Updating the db state")
+            return db
+            .update({
+              TableName: 'State',
+              Key: { psid },
+              UpdateExpression: 'set #s = :s',
+              ExpressionAttributeNames: {
+                '#s': 'state',
+              },
+              ExpressionAttributeValues: {
+                ':s': "STARTED",
+              },
+              
+            })
+            
+            .promise();
+          console.log('Done.');
+        }
+        else if (s == "GOT SUSTAINABLE REPLY" && messagingItem.message.text !== "👎" && messagingItem.message.text !== "👍" && messagingItem.message.text !== "💯"){
+            console.log("Food rating was answered incorrectly");
+            const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
+  
+            const response1=
+          {
+            text: "Sorry, I didnt quite get that. I was wondering what you thought of the food?",
+            quick_replies: [
+              {
+                content_type: "text",
+                title: "👎",
+                payload: "<POSTBACK_PAYLOAD>"
+              },
+              {
+                content_type: "text",
+                title: "👍",
+                payload: "<POSTBACK_PAYLOAD>"
+              },
+              {
+                content_type: "text",
+                title: "💯",
+                payload: "<POSTBACK_PAYLOAD>"
+              }
+            ]
+          }
+            callSendAPI(messagingItem, callback, response1)
+
+            console.log("Updating the db state")
+              return db
+              .update({
+                TableName: 'State',
+                Key: { psid },
+                UpdateExpression: 'set #s = :s',
+                ExpressionAttributeNames: {
+                  '#s': 'state',
+                },
+                ExpressionAttributeValues: {
+                  ':s': "GOT SUSTAINABLE REPLY",
+                },
+                
+              })
+              
+              .promise();
+            console.log('Done.');
+        }
+        else if (s == "FOOD RATED" && messagingItem.message.text !== "WAT?? 😲😱" && messagingItem.message.text !== "Yep 👍"){
+              console.log("Vegan rating was answered incorrectly");
+              const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
+    
+              const response1=
+            {
+              text: "Sorry, I didnt quite get that. I just asked if you knew it was plant-based?",
+              quick_replies: [
+                {
+                  content_type: "text",
+                  title: "WAT?? 😲😱",
+                  payload: "<POSTBACK_PAYLOAD>"
+                },
+                {
+                  content_type: "text",
+                  title: "Yep 👍",
+                  payload: "<POSTBACK_PAYLOAD>"
+                },
+              ]
+            }
+              callSendAPI(messagingItem, callback, response1)
+  
+              console.log("Updating the db state")
+                return db
+                .update({
+                  TableName: 'State',
+                  Key: { psid },
+                  UpdateExpression: 'set #s = :s',
+                  ExpressionAttributeNames: {
+                    '#s': 'state',
+                  },
+                  ExpressionAttributeValues: {
+                    ':s': "FOOD RATED",
+                  },
+                  
+                })
+                
+                .promise();
+              console.log('Done.');
+        }
+        else if (s == "GOT VEGAN FEEDBACK" && messagingItem.message.text !== "No I'm okay" && messagingItem.message.text !== "Obviously"){
+          console.log("More food interest was answered incorrectly");
+          const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
+
+          const response1=
+        {
+          text: "Sorry, I didnt quite get that. I was asking if you want to hear about more free food in the future?",
+          quick_replies: [
+            {
+              content_type: "text",
+              title: "No I'm okay",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+            {
+              content_type: "text",
+              title: "Obviously",
+              payload: "<POSTBACK_PAYLOAD>"
+            },
+          ]
+        }
+          callSendAPI(messagingItem, callback, response1)
+
+          console.log("Updating the db state")
+            return db
+            .update({
+              TableName: 'State',
+              Key: { psid },
+              UpdateExpression: 'set #s = :s',
+              ExpressionAttributeNames: {
+                '#s': 'state',
+              },
+              ExpressionAttributeValues: {
+                ':s': "GOT VEGAN FEEDBACK",
+              },
+              
+            })
+            
+            .promise();
+          console.log('Done.');
+        }
+        else if (s == "GOT FOOD INTEREST"){
+          console.log("More food interest was answered incorrectly");
+          const url = `https://graph.facebook.com/v2.6/me/messages?access_token=EAACZBYlTaAHEBAMRW2CKCI0k4MCoxcjOyMkHeTzZCFQEIbWhjUefiEd5grYOMfexPbSCZAAWzSZApZCeRynWupU05ZC3d9Tpnm2dQ9keEXU7klP1xNynqyOZCVVkUYEHqSLa202BaxIra1Ddb1yNBZCcW2ah7YdHZAcx6n9862Y92sxsObm0q2Tee`;
+
+          const response1=
+        {
+          text: "Sorry, that's all the tricks I can do for now. If you have any questions though, just send them through and a real person may be able to help"
+          }
+
+          callSendAPI(messagingItem, callback, response1)
+
+          console.log("Updating the db state")
+            return db
+            .update({
+              TableName: 'State',
+              Key: { psid },
+              UpdateExpression: 'set #s = :s',
+              ExpressionAttributeNames: {
+                '#s': 'state',
+              },
+              ExpressionAttributeValues: {
+                ':s': "SILENT",
+              },
+              
+            })
+            
+            .promise();
+          console.log('Done.');
 
         }
-    (res => res.json())
-    .then(json => {
-      console.log("Json result ", json);
-      callback(null, json);
-    })
-    .catch(error => {
-      console.error("Call failed ", error);
-      callback(null, error);
-    })
-    ;
-    console.log("Done sending message")
+    else {
+      console.log("The whole handler is broken");
+    }
+        })
       })
     })
-  })
-}
+  }
+
+
 function callSendAPI(messagingItem, callback, response1){
   console.log("Using callsendAPI function");
  
@@ -598,7 +797,7 @@ function callSendAPI(messagingItem, callback, response1){
  function getState(event,messagingItem,psid) {
 console.log("This is the event" , JSON.stringify(event));
 console.log(psid);
-if (messagingItem.postback.title == "Get Started"){
+if (messagingItem.postback){
 console.log("putting STARTED into the db");
 return db.put({
     TableName: "State",
@@ -629,24 +828,24 @@ let type;
 console.log("This is cats", JSON.stringify(cats));
 console.log("This is s", JSON.stringify(s));
 console.log("Working through savefeedback");
-  if (s == "START" && cats == "Get Started"){
+  if (s == "GOT SUSTAINABLE REPLY" && cats =="👎"){
     console.log("Take me on a journey");
     type = "RATING ON FOOD";
     payload = 0;
   }
-  else if (s == "GOT SUSTAINABLE REPLY" && cats =="Thumbs Up"){
+  else if (s == "GOT SUSTAINABLE REPLY" && cats =="👍"){
     type = "RATING ON FOOD";
     payload = 1;
   }
-  else if (s == "GOT SUSTAINABLE REPLY" && cats =="100!"){
+  else if (s == "GOT SUSTAINABLE REPLY" && cats =="💯"){
     type = "RATING ON FOOD";
     payload = 2;
   }
-  else if (s =="FOOD RATED" && cats == "WAT??"){
+  else if (s =="FOOD RATED" && cats == "WAT?? 😲😱"){
     type = "VEGAN FEEDBACK";
     payload = 0;
   }
-  else if (s =="FOOD RATED" && cats == "Yep!"){
+  else if (s =="FOOD RATED" && cats == "Yep 👍"){
     type = "VEGAN FEEDBACK";
     payload = 1;
   }
@@ -654,7 +853,7 @@ console.log("Working through savefeedback");
     type = "MORE INFO";
     payload = 0;
   }
-  else if (s =="GOT FOOD INTEREST" && cats == "Obviously"){
+  else if (s =="GOT VEGAN FEEDBACK" && cats == "Obviously"){
     type = "MORE INFO";
     payload = 1;
   }
